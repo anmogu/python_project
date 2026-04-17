@@ -111,25 +111,31 @@ class Kmer:
             if s == kmer:
                 self.count[i] += 1
      
-    
-
-
-
-
-
-
-
-    def save(self,filename):
+    def save_kmer(self,filename):
         #check if the instance has the attribute sequence and header
-        if hasattr(self, "sequence") and hasattr(self, "header"):
+        if hasattr(self, "kmers") and hasattr(self, "origin") and hasattr(self, "origin") and hasattr(self, "origin"):
+            ########UNITTEST HERE========
             #check if headers and sequences are the same length
-            if len(self.header) != len(self.sequence):
-                raise ValueError("header and sequence not of same length")
+            if len(self.kmers) != len(self.count):
+                ########UNITTEST HERE
+                raise ValueError("Lengths do not match")
             else:
                 #make a file
+                print(f"writing file{filename}")
                 with open(filename, "w") as f:
-                    for h,s in zip(self.header,self.sequence):
-                        f.write(h + "\n" + s + "\n")
+                    #write header
+                    f.write("Kmer" + "," + "Gene of origin" + "," + "Position in gene" + ","+ "Count"+ "\n")
+                    for k,o,p,c in zip(self.kmers,self.origin, self.positions, self.count):
+                        f.write(k + "," + str(o) + "," + str(p) + ","+ str(c)+ "\n")
+
+
+
+
+
+
+
+
+
 
     #exercise 5
     def content(self,start = None, end = None):
