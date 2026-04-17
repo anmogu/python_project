@@ -25,7 +25,6 @@ outputfile = "out.csv"
 def scan_genome(genome_files, seq_kmers, kmer_size = 19, report_step = 1000):
     #function that lazily loads genes
     def read_genome(file_list):
-        line_counter = 1
         for file in file_list:
             with gzip.open(file,"rt") as f:
                 for i,line in enumerate(f):
