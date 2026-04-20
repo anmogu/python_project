@@ -11,7 +11,7 @@ class Genome:
         Generator that lazily loads reads one by one.
         """
         for filename in self.file_list:
-            with gzip.open(filename, "r") as infile:
+            with gzip.open(filename, "rt") as infile:
                 for i, line in enumerate(infile):
                     # In FASTQ, the sequence is on line 2 (index 1), line 6 (index 5), etc.
                     if i % 4 == 1:

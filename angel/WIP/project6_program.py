@@ -2,57 +2,7 @@
 
 from kmer_class import Kmer
 from genome_class import Genome
-import sys
-
-
-def usage(msg):
-    """Small function to print error messages and exit the program if anything fails to run"""
-    if msg is not None:
-        print(msg)
-        print()
-    print(
-        "Usage: python3 PROGRAMNAME.py -db <database.fsa> -o <output.csv> -i <fastq1.gz> [fastq2.gz ...] [-k <kmer_size>]")
-    sys.exit(1)
-
-
-def parse_args():
-    args = sys.argv[1:]
-
-    if "-db" not in args or "-i" not in args or "-o" not in args:
-        usage("Missing required arguments (-db, -i, and -o are required).")
-
-    # Parse Database
-    db_index = args.index("-db")
-    if db_index + 1 >= len(args):
-        usage("Missing database file after -db.")
-    db_path = args[db_index + 1]
-
-    # Parse Output
-    o_index = args.index("-o")
-    if o_index + 1 >= len(args):
-        usage("Missing output file after -o.")
-    out_path = args[o_index + 1]
-
-    # Parse Kmer size (Optional, defaults to 19)
-    kmer_size = 19
-    if "-k" in args:
-        k_index = args.index("-k")
-        if k_index + 1 < len(args):
-            kmer_size = int(args[k_index + 1])
-
-    # Parse Input FASTQ files (can be multiple)
-    i_index = args.index("-i")
-    fastq_files = []
-    # Grab everything after -i until the end or until we hit another flag (like -o or -k)
-    for arg in args[i_index + 1:]:
-        if arg.startswith("-"):
-            break
-        fastq_files.append(arg)
-
-    if not fastq_files:
-        usage("Missing FASTQ file(s) after -i.")
-
-    return db_path, out_path, fastq_files, kmer_size
+from parse_args import parse_args
 
 
 def main():
@@ -64,15 +14,122 @@ def main():
     ar_kmers = Kmer(db_path, kmer_size)
 
     # 3. Create a generator for the sequence files
-    print(f"Parsing {len(fastq_files)}...")
+    print(f"Parsing {len(fastq_files)} genome(s)...")
     genomes = Genome(fastq_files)
 
     print(f"Scanning genome(s)...")
     # 4. Go through all the reads and build the results
-    
-        if g[:kmer_size] in seq_kmers or g[-kmer_size:] in seq_kmers:
-            # Scan entire read
-            for i in range(0, len(g)-kmer_size):
-                # yield kmer
-                # if g[i:(i+kmer_size)] in seq_kmers:
-                yield g[i:(i+kmer_size)]
+
+    hits = {}
+
+    for read in genomes.reads:
+        read = read.upper()
+
+        if len(read) < kmer_size:
+            continue
+
+        # Quick filter with first and last k-mer
+        first_kmer = read[:kmer_size]
+        last_kmer = read[-kmer_size:]
+
+        if first_kmer not in ar_kmers.kmers and last_kmer not in ar_kmers.kmers:
+            continue
+
+        # Collect candidate placements for this read
+        candidates = {}
+
+        for read_pos in range(len(read) - kmer_size + 1):
+            read_kmer = read[read_pos:read_pos + kmer_size]
+
+            if read_kmer not in ar_kmers.kmers:
+                continue
+
+            for gene_header, gene_pos, is_rc in ar_kmers.kmers[read_kmer]:
+                candidate_start = gene_pos - read_pos
+                key = (gene_header, candidate_start, is_rc)
+
+
+                if key not in candidates:
+                    candidates[key] = 0
+                candidates[key] += 1
+
+        # No candidate placements found
+        if not candidates:
+            continue
+
+        # Pick the best-supported placement
+        best_hit = None
+        best_count = 0
+
+        for key, count in candidates.items():
+            if count > best_count:
+                best_hit = key
+                best_count = count
+
+        gene_header, gene_start, is_rc = best_hit
+        
+        if is_rc:
+            test_read = ar_kmers.rev_comp(read)
+        else:
+            test_read = read
+
+        gene_seq = ar_kmers.gene_dict[gene_header]
+
+        # Placement must fit inside the gene
+        if gene_start < 0:
+            continue
+        if gene_start + len(read) > len(gene_seq):
+            continue
+
+        # Extract corresponding gene segment
+        gene_segment = gene_seq[gene_start:gene_start + len(read)]
+
+        # Count real base mismatches
+        mismatches = 0
+        for a, b in zip(read, gene_segment):
+            if a != b:
+                mismatches += 1
+                if mismatches > 2:
+                    break
+
+        # Reject read if too many mismatches
+        if mismatches > 2:
+            continue
+
+        # Update real per-base coverage
+        if gene_header not in hits:
+            hits[gene_header] = {}
+
+        for pos in range(gene_start, gene_start + len(read)):
+            if pos not in hits[gene_header]:
+                hits[gene_header][pos] = 0
+            hits[gene_header][pos] += 1
+
+    results = []
+
+    for gene_header, gene_seq in ar_kmers.gene_dict.items():
+        gene_len = len(gene_seq)
+
+        if gene_header not in hits:
+            continue
+
+        covered_bases = len(hits[gene_header])
+        coverage_pct = (covered_bases / gene_len) * 100
+        mean_depth = sum(hits[gene_header].values()) / gene_len
+
+        if coverage_pct >= 95 and mean_depth >= 10:
+            results.append((gene_header, coverage_pct, mean_depth))
+
+    results.sort(key=lambda x: (x[1], x[2]), reverse=True)
+
+
+    with open(out_path, "w") as f:
+        f.write("Gene,Coverage,Depth\n")
+        for gene_header, coverage_pct, mean_depth in results:
+            f.write(f"{gene_header},{coverage_pct:.2f},{mean_depth:.2f}\n")
+
+
+    print(f"Output written to {out_path}")
+
+
+main()

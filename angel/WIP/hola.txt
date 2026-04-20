@@ -1,0 +1,10 @@
+Gene,Coverage,Depth
+>blaOXA-1_1_J02967 Beta-lactam resistance:,100.00,21.63
+>oqxA_1_EU370913 Quinolone resistance:,99.66,45.95
+>catB4_1_EU935739 Phenicol resistance:,99.64,21.52
+>fosA_3_ACWO01000079 Fosfomycin resistance:,99.52,41.12
+>strA_1_M96392 Aminoglycoside resistance:Alternate name; aph(3'')-Ib,99.25,17.21
+>oqxB_1_EU370913 Quinolone resistance:,97.81,38.98
+>strB_1_M96392 Aminoglycoside resistance:Alternate name; aph(6)-Id,97.61,22.20
+>dfrA14_1_DQ388123 Trimethoprim resistance:,97.52,19.66
+>sul2_1_AF542061 Sulphonamide resistance:,96.45,13.00

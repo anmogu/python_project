@@ -76,3 +76,4 @@ class Kmer:
                 if rev_tmp_kmer not in self.kmers:
                     self.kmers[rev_tmp_kmer] = []
                 self.kmers[rev_tmp_kmer].append((h, i, True))
+
