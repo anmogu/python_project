@@ -20,15 +20,17 @@ def main():
     print(f"Scanning genome(s)...")
     # 4. Go through all the reads and build the results
 
+    # Initiate hits dictionary to store results
     hits = {}
 
     for read in genomes.reads:
         read = read.upper()
 
+        # Discard if faulty read is shorter than usual (shouldn't happen here)
         if len(read) < kmer_size:
             continue
 
-        # Quick filter with first and last k-mer
+        # Quick filter with first and last k-mer, cut down search space dramatically
         first_kmer = read[:kmer_size]
         last_kmer = read[-kmer_size:]
 
@@ -38,16 +40,18 @@ def main():
         # Collect candidate placements for this read
         candidates = {}
 
+        # Go through all kmers if the check before was succesful
         for read_pos in range(len(read) - kmer_size + 1):
             read_kmer = read[read_pos:read_pos + kmer_size]
 
+            # If kmer not in databse, skip iteration
             if read_kmer not in ar_kmers.kmers:
                 continue
 
+            # Gather information from database and build candidate starts
             for gene_header, gene_pos, is_rc in ar_kmers.kmers[read_kmer]:
                 candidate_start = gene_pos - read_pos
                 key = (gene_header, candidate_start, is_rc)
-
 
                 if key not in candidates:
                     candidates[key] = 0
@@ -67,7 +71,7 @@ def main():
                 best_count = count
 
         gene_header, gene_start, is_rc = best_hit
-        
+
         if is_rc:
             test_read = ar_kmers.rev_comp(read)
         else:
@@ -89,11 +93,11 @@ def main():
         for a, b in zip(read, gene_segment):
             if a != b:
                 mismatches += 1
-                if mismatches > 2:
+                if mismatches > 5:
                     break
 
         # Reject read if too many mismatches
-        if mismatches > 2:
+        if mismatches > 5:
             continue
 
         # Update real per-base coverage
@@ -122,14 +126,13 @@ def main():
 
     results.sort(key=lambda x: (x[1], x[2]), reverse=True)
 
-
     with open(out_path, "w") as f:
-        f.write("Gene,Coverage,Depth\n")
+        f.write("Gene,Coverage(%),Depth(X)\n")
         for gene_header, coverage_pct, mean_depth in results:
             f.write(f"{gene_header},{coverage_pct:.2f},{mean_depth:.2f}\n")
-
 
     print(f"Output written to {out_path}")
 
 
-main()
+if __name__ == "__main__":
+    main()

@@ -7,9 +7,8 @@ class Kmer:
             self.split(kmer_size=kmer_size)
         self.kmer_size = kmer_size
 
-    # function that reads a fastafile from filename
-
     def load(self, filename):
+        """Reads a fastafile from filename"""
         # Check if filename exists
         try:
             with open(filename, "r") as f:
@@ -17,7 +16,7 @@ class Kmer:
 
         # If filename does not exist print error message and exit
         except:
-            raise FileNotFoundError("Cannot find filename")
+            raise FileNotFoundError("Cannot find file or it doesn't exist")
 
         # initialize name and sequence list
         dna_header = []
@@ -39,7 +38,7 @@ class Kmer:
 
                 # Append the new header
                 dna_header.append(l)
-                # reset the sequence string to blank
+                # Reset the sequence string to blank
                 seq = ""
             else:
                 # Append the line to the sequence
@@ -50,12 +49,13 @@ class Kmer:
         self.sequence = dna_seq
         self.header = dna_header
 
-    # Small function to return reverse complement strand of DNA
     def rev_comp(self, seq):
+        """Returns reverse complement strand of DNA only"""
         comp_table = str.maketrans("ATCGN", "TAGCN")
         return seq.translate(comp_table)[::-1]
 
     def split(self, kmer_size=19):
+        """Creates 2 dictionaries with kmers from given sequences linked to header (gene name in this case)"""
 
         self.kmers = {}
         self.gene_dict = {}
@@ -64,11 +64,14 @@ class Kmer:
             s = s.upper()
             self.gene_dict[h] = s
 
+            # Create all kmers from the sequences
             for i in range(len(s) - kmer_size + 1):
 
+                # Including reverse sequence
                 tmp_kmer = s[i:i + kmer_size]
                 rev_tmp_kmer = self.rev_comp(tmp_kmer)
 
+                # Create an entry in the dictionary if it didn't exist
                 if tmp_kmer not in self.kmers:
                     self.kmers[tmp_kmer] = []
                 self.kmers[tmp_kmer].append((h, i, False))
@@ -76,4 +79,3 @@ class Kmer:
                 if rev_tmp_kmer not in self.kmers:
                     self.kmers[rev_tmp_kmer] = []
                 self.kmers[rev_tmp_kmer].append((h, i, True))
-
