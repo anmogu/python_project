@@ -1,7 +1,8 @@
 import sys
 
+
 def usage(msg):
-    """Small function to print error messages and exit the program if anything fails to run"""
+    """Print error messages and exit the program if anything fails to run"""
     if msg is not None:
         print(msg)
         print()
@@ -11,6 +12,7 @@ def usage(msg):
 
 
 def parse_args():
+    """Parse arguments for this program"""
     args = sys.argv[1:]
 
     if "-db" not in args or "-i" not in args or "-o" not in args:
@@ -38,6 +40,7 @@ def parse_args():
     # Parse Input FASTQ files (can be multiple)
     i_index = args.index("-i")
     fastq_files = []
+
     # Grab everything after -i until the end or until we hit another flag (like -o or -k)
     for arg in args[i_index + 1:]:
         if arg.startswith("-"):
