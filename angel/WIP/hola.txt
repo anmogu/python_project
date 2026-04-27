@@ -8,3 +8,7 @@ Gene,Coverage(%),Depth(X)
 >sul2_1_AF542061 Sulphonamide resistance:,98.28,14.36
 >strB_1_M96392 Aminoglycoside resistance:Alternate name; aph(6)-Id,97.61,23.41
 >dfrA14_1_DQ388123 Trimethoprim resistance:,97.52,21.12
+>aac(3)-IIa_1_X51534 Aminoglycoside resistance:,94.77,22.99
+>blaTEM-1A_4_HM749966 Beta-lactam resistance:Alternate name; RblaTEM-1,94.54,14.78
+>tet(A)_2_X00006 Tetracycline resistance:,86.92,18.26
+>blaSHV-1_1_DQ166783 Beta-lactam resistance:,85.71,15.13

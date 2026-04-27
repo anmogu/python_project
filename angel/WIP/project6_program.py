@@ -20,27 +20,27 @@ def main():
     print(f"Scanning genome(s)...")
     # 4. Go through all the reads and build the results
 
-    # Initiate hits dictionary to store results
+    # 4.1. Initiate hits dictionary to store results
     hits = {}
 
     for read in genomes.reads:
         read = read.upper()
 
-        # Discard if faulty read is shorter than usual (shouldn't happen here)
+        # 4.1.1. Discard if faulty read is shorter than usual (shouldn't happen here)
         if len(read) < kmer_size:
             continue
 
-        # Quick filter with first and last k-mer, cut down search space dramatically
+        # 4.1.2. Quick filter with first and last k-mer, cut down search space dramatically
         first_kmer = read[:kmer_size]
         last_kmer = read[-kmer_size:]
 
         if first_kmer not in ar_kmers.kmers and last_kmer not in ar_kmers.kmers:
             continue
 
-        # Collect candidate placements for this read
+        # 4.1.3. Collect candidate placements for this read
         candidates = {}
 
-        # Go through all kmers if the check before was succesful
+        # 4.1.4. Go through all kmers if the check before was succesful
         for read_pos in range(len(read) - kmer_size + 1):
             read_kmer = read[read_pos:read_pos + kmer_size]
 
@@ -57,11 +57,11 @@ def main():
                     candidates[key] = 0
                 candidates[key] += 1
 
-        # No candidate placements found
+        # 4.1.5.No candidate placements found
         if not candidates:
             continue
 
-        # Pick the best-supported placement
+        # 4.1.6. Pick the best-supported placement
         best_hit = None
         best_count = 0
 
@@ -79,16 +79,16 @@ def main():
 
         gene_seq = ar_kmers.gene_dict[gene_header]
 
-        # Placement must fit inside the gene
+        # 4.2. Placement must fit inside the gene
         if gene_start < 0:
             continue
         if gene_start + len(read) > len(gene_seq):
             continue
 
-        # Extract corresponding gene segment
+        # 4.3. Extract corresponding gene segment
         gene_segment = gene_seq[gene_start:gene_start + len(read)]
 
-        # Count real base mismatches
+        # 4.4. Count real base mismatches
         mismatches = 0
         for a, b in zip(read, gene_segment):
             if a != b:
@@ -96,11 +96,11 @@ def main():
                 if mismatches > 5:
                     break
 
-        # Reject read if too many mismatches
+        # 4.4.1. Reject read if too many mismatches
         if mismatches > 5:
             continue
 
-        # Update real per-base coverage
+        # 4.5. Update real per-base coverage
         if gene_header not in hits:
             hits[gene_header] = {}
 
@@ -109,6 +109,7 @@ def main():
                 hits[gene_header][pos] = 0
             hits[gene_header][pos] += 1
 
+    # 4.6. Build the results that will get printed to the output
     results = []
 
     for gene_header, gene_seq in ar_kmers.gene_dict.items():
@@ -121,7 +122,7 @@ def main():
         coverage_pct = (covered_bases / gene_len) * 100
         mean_depth = sum(hits[gene_header].values()) / gene_len
 
-        if coverage_pct >= 95 and mean_depth >= 10:
+        if mean_depth >= 10:
             results.append((gene_header, coverage_pct, mean_depth))
 
     results.sort(key=lambda x: (x[1], x[2]), reverse=True)
