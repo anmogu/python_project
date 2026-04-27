@@ -26,25 +26,18 @@ def main():
     for read in genomes.reads:
         read = read.upper()
 
-        # 4.1.1. Discard if faulty read is shorter than usual (shouldn't happen here)
         if len(read) < kmer_size:
             continue
 
-        # 4.1.2. Quick filter with first and last k-mer, cut down search space dramatically
-        first_kmer = read[:kmer_size]
-        last_kmer = read[-kmer_size:]
-
-        if first_kmer not in ar_kmers.kmers and last_kmer not in ar_kmers.kmers:
-            continue
-
-        # 4.1.3. Collect candidate placements for this read
+        # Collect candidate placements for this read
         candidates = {}
 
-        # 4.1.4. Go through all kmers if the check before was succesful
-        for read_pos in range(len(read) - kmer_size + 1):
+        total_read_kmers = len(read) - kmer_size + 1
+
+        # Go through all k-mers in the read
+        for read_pos in range(total_read_kmers):
             read_kmer = read[read_pos:read_pos + kmer_size]
 
-            # If kmer not in databse, skip iteration
             if read_kmer not in ar_kmers.kmers:
                 continue
 
@@ -57,54 +50,77 @@ def main():
                     candidates[key] = 0
                 candidates[key] += 1
 
-        # 4.1.5.No candidate placements found
+        # No candidate placements found
         if not candidates:
             continue
 
-        # 4.1.6. Pick the best-supported placement
+        # Winner takes all: choose the candidate with the most matched k-mers
         best_hit = None
-        best_count = 0
+        best_count = 2
 
         for key, count in candidates.items():
-            if count > best_count:
+            gene_len_key = len(ar_kmers.gene_dict[key[0]])
+            best_len = len(ar_kmers.gene_dict[best_hit[0]]) if best_hit else 0
+            if count > best_count or (count == best_count and gene_len_key > best_len):
                 best_hit = key
                 best_count = count
 
+        if best_count < 3:
+            continue
+
         gene_header, gene_start, is_rc = best_hit
+        gene_seq = ar_kmers.gene_dict[gene_header]
 
         if is_rc:
             test_read = ar_kmers.rev_comp(read)
         else:
             test_read = read
 
-        gene_seq = ar_kmers.gene_dict[gene_header]
-
-        # 4.2. Placement must fit inside the gene
-        if gene_start < 0:
+        # Placement must overlap the gene
+        if gene_start >= len(gene_seq):
             continue
-        if gene_start + len(read) > len(gene_seq):
+        if gene_start + len(test_read) <= 0:
             continue
 
-        # 4.3. Extract corresponding gene segment
-        gene_segment = gene_seq[gene_start:gene_start + len(read)]
+        # Clip read-to-gene overlap so partial edge overlaps are allowed
+        read_start = 0
+        gene_start_clipped = gene_start
 
-        # 4.4. Count real base mismatches
-        mismatches = 0
-        for a, b in zip(read, gene_segment):
-            if a != b:
-                mismatches += 1
-                if mismatches > 5:
-                    break
+        if gene_start_clipped < 0:
+            read_start = -gene_start_clipped
+            gene_start_clipped = 0
 
-        # 4.4.1. Reject read if too many mismatches
-        if mismatches > 5:
+        overlap_len = min(len(test_read) - read_start,
+                          len(gene_seq) - gene_start_clipped)
+
+        if overlap_len < 10:
             continue
 
-        # 4.5. Update real per-base coverage
+        read_segment = test_read[read_start:read_start + overlap_len]
+        gene_segment = gene_seq[gene_start_clipped:gene_start_clipped + overlap_len]
+
+        # Compute identity over the overlapping region
+        matches = 0
+        for a, b in zip(read_segment, gene_segment):
+            if a == b:
+                matches += 1
+
+        identity = matches / overlap_len
+
+        # Accept read if at least 70% identity
+        if identity < 0.70:
+            continue
+
+        # Update coverage only at bases that actually match
         if gene_header not in hits:
             hits[gene_header] = {}
 
-        for pos in range(gene_start, gene_start + len(read)):
+        for offset, (a, b) in enumerate(zip(read_segment, gene_segment)):
+            if a != b:
+                continue
+
+            pos = gene_start_clipped + offset
+
             if pos not in hits[gene_header]:
                 hits[gene_header][pos] = 0
             hits[gene_header][pos] += 1
@@ -120,9 +136,9 @@ def main():
 
         covered_bases = len(hits[gene_header])
         coverage_pct = (covered_bases / gene_len) * 100
-        mean_depth = sum(hits[gene_header].values()) / gene_len
+        mean_depth = sum(hits[gene_header].values()) / covered_bases
 
-        if mean_depth >= 10:
+        if coverage_pct > 80 and mean_depth >= 5:
             results.append((gene_header, coverage_pct, mean_depth))
 
     results.sort(key=lambda x: (x[1], x[2]), reverse=True)
