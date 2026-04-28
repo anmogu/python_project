@@ -6,12 +6,41 @@ from parse_args import parse_args
 
 
 def main():
+    stats = {
+    "total": 0,
+    "too_short": 0,
+    "no_kmer_hit": 0,
+    "no_candidates": 0,
+    "best_count_lt3": 0,
+    "overlap_lt_k": 0,
+    "identity_lt_70": 0,
+    "accepted": 0,
+    }
+    
     # 1. Parse arguments
     db_path, out_path, fastq_files, kmer_size = parse_args()
 
     # 2. Create resistance kmer database
     print(f"Loading kmers from {db_path} (k={kmer_size})...")
     ar_kmers = Kmer(db_path, kmer_size)
+
+    expected_ids = [
+    "aac(6')Ib-cr_1_DQ303918",
+    "strA_4_AF321551",
+    "strB_1_M96392",
+    "aac(3)-IIa_1_CP023555.1",
+    "blaCTX-M-15_23_DQ302097",
+    "blaOXA-1_1_J02967",
+    "blaSHV-28_1_HM751101",
+    "blaTEM-1B_1_JF910132",
+    "fosA_3_ACWO01000079",
+    "catB4_1_EU935739",
+    "oqxA_1_EU370913",
+    "oqxB_1_EU370913",
+    "sul2_2_GQ421466",
+    "tet(A)_4_AJ517790",
+    "dfrA14_1_DQ388123",
+    ]
 
     # 3. Create a generator for the sequence files
     print(f"Parsing {len(fastq_files)} genome(s)...")
@@ -24,24 +53,27 @@ def main():
     hits = {}
 
     for read in genomes.reads:
+        stats["total"] += 1
         read = read.upper()
 
         if len(read) < kmer_size:
+            stats["too_short"] += 1
             continue
 
         # Collect candidate placements for this read
         candidates = {}
 
         total_read_kmers = len(read) - kmer_size + 1
-
+        any_kmer_hit = False
         # Go through all k-mers in the read
         for read_pos in range(total_read_kmers):
             read_kmer = read[read_pos:read_pos + kmer_size]
 
             if read_kmer not in ar_kmers.kmers:
                 continue
+            any_kmer_hit = True
 
-            # Gather information from database and build candidate starts
+            # Gather information from database and build candidate starts (kmer voting)
             for gene_header, gene_pos, is_rc in ar_kmers.kmers[read_kmer]:
                 candidate_start = gene_pos - read_pos
                 key = (gene_header, candidate_start, is_rc)
@@ -50,13 +82,16 @@ def main():
                     candidates[key] = 0
                 candidates[key] += 1
 
+        if not any_kmer_hit:
+            stats["no_kmer_hit"] += 1
         # No candidate placements found
         if not candidates:
+            stats["no_candidates"] += 1
             continue
 
-        # Winner takes all: choose the candidate with the most matched k-mers
+        # Choose the candidate with the most matched k-mers
         best_hit = None
-        best_count = 2
+        best_count = 0
 
         for key, count in candidates.items():
             gene_len_key = len(ar_kmers.gene_dict[key[0]])
@@ -66,11 +101,13 @@ def main():
                 best_count = count
 
         if best_count < 3:
+            stats["best_count_lt3"] += 1
             continue
 
         gene_header, gene_start, is_rc = best_hit
         gene_seq = ar_kmers.gene_dict[gene_header]
 
+        # Strand adjustment
         if is_rc:
             test_read = ar_kmers.rev_comp(read)
         else:
@@ -93,7 +130,8 @@ def main():
         overlap_len = min(len(test_read) - read_start,
                           len(gene_seq) - gene_start_clipped)
 
-        if overlap_len < 10:
+        if overlap_len < kmer_size:
+            stats["overlap_lt_k"] += 1
             continue
 
         read_segment = test_read[read_start:read_start + overlap_len]
@@ -107,10 +145,12 @@ def main():
 
         identity = matches / overlap_len
 
-        # Accept read if at least 70% identity
-        if identity < 0.70:
+        # Accept read if at least 50% identity
+        if identity < 0.50:
+            stats["identity_lt_70"] += 1
             continue
 
+        stats["accepted"] += 1
         # Update coverage only at bases that actually match
         if gene_header not in hits:
             hits[gene_header] = {}
@@ -125,7 +165,8 @@ def main():
                 hits[gene_header][pos] = 0
             hits[gene_header][pos] += 1
 
-    # 4.6. Build the results that will get printed to the output
+###################################################################################################
+    # Build the results that will get printed to the output
     results = []
 
     for gene_header, gene_seq in ar_kmers.gene_dict.items():
@@ -138,8 +179,40 @@ def main():
         coverage_pct = (covered_bases / gene_len) * 100
         mean_depth = sum(hits[gene_header].values()) / covered_bases
 
-        if coverage_pct > 80 and mean_depth >= 5:
-            results.append((gene_header, coverage_pct, mean_depth))
+    # Map expected IDs to their stats, regardless of thresholds
+    expected_stats = {gid: [] for gid in expected_ids}
+
+    for gene_header, gene_seq in ar_kmers.gene_dict.items():
+        gene_len = len(gene_seq)
+
+        if gene_header not in hits:
+            # No reads mapped at all
+            for gid in expected_ids:
+                if gid in gene_header:
+                    expected_stats[gid].append((gene_header, 0.0, 0.0))
+            continue
+
+        covered_bases = len(hits[gene_header])
+        coverage_pct = (covered_bases / gene_len) * 100
+        mean_depth = sum(hits[gene_header].values()) / covered_bases
+
+        # Record stats for watch-list genes, even if they fail thresholds
+        for gid in expected_ids:
+            if gid in gene_header:
+                expected_stats[gid].append((gene_header, coverage_pct, mean_depth))
+
+    print("\n=== Expected genes debug ===")
+    for gid in expected_ids:
+        entries = expected_stats[gid]
+        if not entries:
+            print(gid, "→ NO MATCHING HEADER IN DB")
+        else:
+            for header, cov, depth in entries:
+                print(f"{gid} matched header {header}: coverage={cov:.2f}%, depth={depth:.2f}x")
+####################################################################################
+    # Original filter
+    if coverage_pct > 80 and mean_depth >= 5:
+        results.append((gene_header, coverage_pct, mean_depth))
 
     results.sort(key=lambda x: (x[1], x[2]), reverse=True)
 
@@ -149,6 +222,7 @@ def main():
             f.write(f"{gene_header},{coverage_pct:.2f},{mean_depth:.2f}\n")
 
     print(f"Output written to {out_path}")
+    print("Read stats:", stats)
 
 
 if __name__ == "__main__":
