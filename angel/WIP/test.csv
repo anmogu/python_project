@@ -1,0 +1,14 @@
+Gene,Coverage(%),Depth(X)
+>blaSHV-100_1_AM941846 Beta-lactam resistance:,100.00,39.06
+>strB_1_M96392 Aminoglycoside resistance:Alternate name; aph(6)-Id,100.00,26.35
+>blaOXA-1_1_J02967 Beta-lactam resistance:,100.00,24.09
+>strA_1_M96392 Aminoglycoside resistance:Alternate name; aph(3'')-Ib,99.88,22.49
+>aac(3)-IIa_1_X51534 Aminoglycoside resistance:,99.77,25.30
+>dfrA14_1_DQ388123 Trimethoprim resistance:,99.59,25.88
+>fosA_3_ACWO01000079 Fosfomycin resistance:,99.52,53.63
+>oqxA_1_EU370913 Quinolone resistance:,99.32,65.27
+>oqxB_1_EU370913 Quinolone resistance:,98.99,59.92
+>blaTEM-1A_4_HM749966 Beta-lactam resistance:Alternate name; RblaTEM-1,97.21,16.60
+>sul2_7_HM486907 Sulphonamide resistance:,96.24,17.74
+>fosA5_1_EU195449 Fosfomycin resistance:,90.00,16.27
+>tet(A)_2_X00006 Tetracycline resistance:,89.00,23.85
