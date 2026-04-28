@@ -6,8 +6,8 @@ class Kmer:
         if filename:
             self.load(filename)
             self.split(kmer_size=kmer_size)
-            self.remove_subset_genes()
-            self.remove_similar_genes(similarity_threshold=0.95)
+            #self.remove_subset_genes()
+            #self.remove_similar_genes(similarity_threshold=0.95)
 
     def load(self, filename):
         """Reads a fastafile from filename"""
@@ -114,8 +114,7 @@ class Kmer:
 
         for h in to_remove:
             self.gene_dict.pop(h, None)
-            self.sequence = [s for hdr, s in zip(
-                self.header, self.sequence) if hdr != h]
+            self.sequence = [s for hdr, s in zip(self.header, self.sequence) if hdr != h]
             self.header = [hdr for hdr in self.header if hdr != h]
 
         self.kmers = {}
