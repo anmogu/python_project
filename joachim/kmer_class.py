@@ -13,6 +13,7 @@ class Kmer:
             self.split(kmer_size=kmer_size)
             self.kmer_size = kmer_size
 
+
     ## functions for class
 
     #function that reads a fastafile from filename
@@ -57,8 +58,8 @@ class Kmer:
         # add dna_seq and dna_header to instance list header and sequence (here we assume that each instance only contains one fasta file and that we cannot concat them, but instead running the load function again will overwrite the fasta file)
         self.sequence = dna_seq
         self.header = dna_header
-
-
+        self.coverage = { dh :  [0]* len(seq)  for dh,seq in zip(dna_header, dna_seq)}
+        self.seq_lookup = {dh : str(s) for dh,s in zip(dna_header,dna_seq) }
 
     def split(self, kmer_size = 19):
 
@@ -83,6 +84,27 @@ class Kmer:
         self.positions = positions
         self.origin = origins
         self.count = count
+        #make kmer lookup table
+        kmer_lookup = {}
+        for s,o,p in zip(seqs,origins,positions):
+            if s in kmer_lookup.keys():
+                kmer_lookup[s].append( (o,p) )
+            else:
+                kmer_lookup[s] = [(o,p)]
+
+        self.kmer_lookup = kmer_lookup
+
+        #make a dictionary to find the kmers in a gene
+        gene_to_kmer = {}
+        for s,o,p in zip(seqs,origins,positions):
+            if o in gene_to_kmer.keys():
+                gene_to_kmer[o].append( (s,p) )
+            else:
+                gene_to_kmer[o] = [(s,p)]
+
+        self.gene_to_kmer = gene_to_kmer
+        
+        
 
     
 
@@ -104,6 +126,7 @@ class Kmer:
                     #yield kmer
                     if g[i:(i+self.kmer_size)] in self.kmers:
                         yield g[i:(i+self.kmer_size)]
+
 
     
     def count_kmer(self,kmer):
