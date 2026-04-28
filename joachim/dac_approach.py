@@ -143,29 +143,61 @@ print("Write output")
 #ar_genes.save_kmer(outputfile)
 
 avg_cutoff = 10
-min_cutoff = 0
+min_cutoff = 3
+
+genes95 = []
+
+for h in ar_genes.header:
+    gene_coverage = 0
+    for c in ar_genes.coverage[h]:
+        if c > avg_cutoff:
+            gene_coverage += 1
+    gene_coverage_percent = gene_coverage/len(ar_genes.coverage[h])*100
+    if  gene_coverage_percent > 95: #and avg > avg_cutoff and minimum > min_cutoff:
+        #f.write(f"{h}, {gene_coverage_percent}, {avg}, {minimum} \n")
+        #f.write(f"{ar_genes.coverage[h]} \n")
+        genes95.append(h)
+
+
+
+
+print("making sets")
+gene_sets = []
+for g in genes95:
+    kmer_set = set()
+    cover = ar_genes.coverage[g]
+    #for each kmer see its coverage, if it is covered add it to set
+    for k,p in ar_genes.gene_to_kmer[g]:
+        if min(cover[p:p+kmer]) > min_cutoff:
+            kmer_set.add(k)
+    gene_sets.append(kmer_set)
+
+
+
+print("removing subsets")
+x = 0
+while x < len(gene_sets):
+    for y in range(len(gene_sets)):
+        if x != y:
+            if gene_sets[x].issubset(gene_sets[y]):
+                #print("removed subset")
+                del gene_sets[x]
+                del genes95[x]
+                x -= 1
+                break
+
+    x += 1
+
+print(len(genes95))
+
 with open(outputfile, "w") as f:
     f.write(f"gene, average depth, minimum depth \n")
-    for h in ar_genes.header:
+    for h in genes95:
         avg = sum(ar_genes.coverage[h])/len(ar_genes.coverage[h])
         minimum = min(ar_genes.coverage[h])
-        if  avg > avg_cutoff and minimum > min_cutoff:
+        if  avg >= avg_cutoff:
             f.write(f"{h}, {avg}, {minimum} \n")
             #f.write(f"{ar_genes.coverage[h]} \n")
   
             
 
-#95% coverage
-with open("percent_out", "w") as f:
-    f.write(f"gene, average depth, minimum depth \n")
-    for h in ar_genes.header:
-        avg = sum(ar_genes.coverage[h])/len(ar_genes.coverage[h])
-        minimum = min(ar_genes.coverage[h])
-        gene_coverage = 0
-        for c in ar_genes.coverage[h]:
-            if c > avg_cutoff:
-                gene_coverage += 1
-        gene_coverage_percent = gene_coverage/len(ar_genes.coverage[h])*100
-        if  gene_coverage_percent > 95 and avg > avg_cutoff and minimum > min_cutoff:
-            f.write(f"{h}, {gene_coverage_percent}, {avg}, {minimum} \n")
-            #f.write(f"{ar_genes.coverage[h]} \n")
