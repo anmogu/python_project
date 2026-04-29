@@ -1,0 +1,20 @@
+Gene,Coverage (%),Average depth
+>aac(6')Ib-cr_1_DQ303918 Fluoroquinolone and aminoglycoside resistance:,97.83,28.09
+>strA_4_AF321551 Aminoglycoside resistance:Alternate name; aph(3'')-Ib,100.00,24.47
+>strB_1_M96392 Aminoglycoside resistance:Alternate name; aph(6)-Id,99.64,24.03
+>aac(3)-IIa_1_CP023555.1 Aminoglycoside resistance:,100.00,25.85
+>blaCTX-M-15_23_DQ302097 Beta-lactam resistance:Alternate name; UOE-1,100.00,25.24
+>blaOXA-1_1_J02967 Beta-lactam resistance:,100.00,25.82
+>blaSHV-16_1_AF072684 Beta-lactam resistance:,98.06,34.17
+>blaSHV-100_1_AM941846 Beta-lactam resistance:,100.00,39.72
+>blaTEM-1B_1_JF910132 Beta-lactam resistance:Alternate name; RblaTEM-1,100.00,24.97
+>blaSHV-12_2_AY273807 Beta-lactam resistance:Alternate name; SHV-5-2a,96.98,31.20
+>fosA_3_ACWO01000079 Fosfomycin resistance:,99.52,63.65
+>fosA_5_AFBO01000747 Fosfomycin resistance:,97.62,47.92
+>fosA_6_ACZD01000244 Fosfomycin resistance:,96.19,32.38
+>catB4_1_EU935739 Phenicol resistance:,100.00,70.51
+>oqxA_1_EU370913 Quinolone resistance:,99.23,57.60
+>oqxB_1_EU370913 Quinolone resistance:,98.86,53.98
+>sul2_2_GQ421466 Sulphonamide resistance:,99.26,21.47
+>sul2_9_FJ197818 Sulphonamide resistance:,96.83,20.94
+>tet(A)_4_AJ517790 Tetracycline resistance:,100.00,33.25
