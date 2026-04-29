@@ -16,6 +16,18 @@ def parse_args():
     """Parse arguments for this program"""
     args = sys.argv[1:]
 
+    if "-h" in args or "--help" in args:
+        print("Usage: python3 PROGRAMNAME.py -db <database_file> -o <output.csv> -i <fastq1.gz> [fastq2.gz ...] [-k <kmer_size>] [-n <indent_size>]")
+        print()
+        print("options:")
+        print("  -h, --help         show this help message and exit")
+        print("  -db                Path to database file (REQUIRED)")
+        print("  -o                 Output CSV file (REQUIRED)")
+        print("  -i                 Input FASTQ file(s) (REQUIRED)")
+        print("  -k                 k-mer size (default: 19)")
+        print("  -n                 indent size (default: 20)")
+        sys.exit(0)
+
     if "-db" not in args or "-i" not in args or "-o" not in args:
         usage("Missing required arguments (-db, -i, and -o are required).")
 
@@ -44,6 +56,8 @@ def parse_args():
         n_index = args.index("-n")
         if n_index + 1 < len(args):
             indent_size = int(args[n_index + 1])
+
+    
 
     # Parse Input FASTQ files (can be multiple)
     i_index = args.index("-i")
