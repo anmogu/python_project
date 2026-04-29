@@ -6,7 +6,7 @@ import gzip
 
 def main():
     # 1. Parse arguments
-    db_path, out_path, fastq_files, kmer_size = parse_args()
+    db_path, out_path, fastq_files, kmer_size, indent_size = parse_args()
 
     # 2. Load resistance gene k-mer database
     print(f"Loading kmers from {db_path} (k={kmer_size})...")
@@ -25,7 +25,10 @@ def main():
     for h in ar_genes.header:
         cover = ar_genes.coverage[h]
         gene_len = len(cover)
-        well_covered = sum(1 for c in cover if c > avg_cutoff)
+        well_covered = 0
+        for c in cover:
+            if c > avg_cutoff:
+                well_covered += 1
         coverage_pct = well_covered / gene_len * 100
         if coverage_pct > 95:
             genes95.append((h, coverage_pct))
@@ -109,7 +112,7 @@ def scan_genome(ar_genes, fastq_files, kmer_size, report_step=1000000):
                     gene_seq[pos:end],
                     read[:end - pos]
                 )
-            continue  # ← skip last-kmer check if first kmer already matched
+            continue  # skip last-kmer check if first kmer already matched
 
         # Try anchoring on the last k-mer of the read
         hits = ar_genes.kmer_lookup.get(read[-kmer_size:])

@@ -7,7 +7,8 @@ def usage(msg):
         print(msg)
         print()
     print(
-        "Usage: python3 PROGRAMNAME.py -db <database_file> -o <output.csv> -i <fastq1.gz> [fastq2.gz ...] [-k <kmer_size>]")
+        "Usage: python3 PROGRAMNAME.py -db <database_file> -o <output.csv> -i "
+        "<fastq1.gz> [fastq2.gz ...] [-k <kmer_size>] [-n <indent_size>]" )
     sys.exit(1)
 
 
@@ -37,6 +38,12 @@ def parse_args():
         if k_index + 1 < len(args):
             kmer_size = int(args[k_index + 1])
 
+    indent_size = 20
+    if "-n" in args:
+        n_index = args.index("-n")
+        if n_index + 1 < len(args):
+            indent_size = int(args[n_index + 1])
+
     # Parse Input FASTQ files (can be multiple)
     i_index = args.index("-i")
     fastq_files = []
@@ -50,4 +57,4 @@ def parse_args():
     if not fastq_files:
         usage("Missing FASTQ file(s) after -i.")
 
-    return db_path, out_path, fastq_files, kmer_size
+    return db_path, out_path, fastq_files, kmer_size, indent_size
