@@ -38,6 +38,7 @@ def parse_args():
         if k_index + 1 < len(args):
             kmer_size = int(args[k_index + 1])
 
+    # Parse indent size (Optional, defaults to 20)
     indent_size = 20
     if "-n" in args:
         n_index = args.index("-n")
