@@ -58,7 +58,7 @@ def main():
 
     # 6. Write output
     print(f"Writing output to {out_path}...")
-    with open(out_path, "w") as f:
+    with open(out_path + ".csv", "w") as f:
         f.write("Gene,Coverage (%),Average depth\n")
         for h, coverage_pct in genes95:
             cover = ar_genes.coverage[h]

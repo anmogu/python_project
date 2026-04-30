@@ -33,13 +33,13 @@ def parse_args():
 
     # Parse Database
     db_index = args.index("-db")
-    if db_index + 1 >= len(args):
+    if db_index + 1 >= len(args) or args[db_index + 1].startswith("-"):
         usage("Missing database file after -db.")
     db_path = args[db_index + 1]
 
     # Parse Output
     o_index = args.index("-o")
-    if o_index + 1 >= len(args):
+    if o_index + 1 >= len(args) or args[o_index + 1].startswith("-"):
         usage("Missing output file after -o.")
     out_path = args[o_index + 1]
 
@@ -47,16 +47,17 @@ def parse_args():
     kmer_size = 19
     if "-k" in args:
         k_index = args.index("-k")
-        if k_index + 1 < len(args):
-            kmer_size = int(args[k_index + 1])
+        if k_index + 1 >= len(args) or args[k_index + 1].startswith("-"):
+            usage("Missing kmer size after -k.")
+        kmer_size = int(args[k_index + 1])
 
     # Parse indent size (Optional, defaults to 20)
     indent_size = 20
     if "-n" in args:
         n_index = args.index("-n")
-        if n_index + 1 < len(args):
-            indent_size = int(args[n_index + 1])
-
+        if n_index + 1 >= len(args) or args[n_index + 1].startswith("-"):
+            usage("Missing indent size after -n.")
+        indent_size = int(args[n_index + 1])
     
 
     # Parse Input FASTQ files (can be multiple)
@@ -71,5 +72,9 @@ def parse_args():
 
     if not fastq_files:
         usage("Missing FASTQ file(s) after -i.")
+
+    for file in fastq_files:
+        if not file.endswith(".gz"):
+            usage("FASTQ files are not gzipped")
 
     return db_path, out_path, fastq_files, kmer_size, indent_size
