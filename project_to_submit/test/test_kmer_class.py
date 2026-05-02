@@ -1,7 +1,7 @@
 import pytest
 import sys
 
-sys.path.append("../../final_code")
+sys.path.append("../src")
 
 from kmer_clean import Kmer
 
