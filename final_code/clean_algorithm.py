@@ -80,6 +80,7 @@ def scan_genome(ar_genes, fastq_files, kmer_size, report_step=1000000):
                 for i, line in enumerate(f):
                     if i % 4 == 1:
                         seq = line.strip()
+                        seq = seq.upper()
                         yield seq
                         yield seq[::-1].translate(comp_trans)
 

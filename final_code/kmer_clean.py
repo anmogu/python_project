@@ -30,7 +30,7 @@ class Kmer:
                 seq = ""
             else:
                 seq += line
-        sequences.append(seq.upper())  # append last sequence
+        sequences.append(seq.upper())  # Append last sequence
 
         self.header = headers
         self.sequence = sequences
@@ -44,8 +44,8 @@ class Kmer:
 
         for h, s in zip(self.header, self.sequence):
             gene_to_kmer[h] = []
-            for i in range(len(s) - kmer_size + 1):  # +1 to include last valid k-mer
-                kmer = s[i:i + kmer_size]
+            for i in range(len(s) - kmer_size + 1):  
+                kmer = s[i:i + kmer_size]   # Slide a window of kmer_size to extract all
 
                 if kmer not in kmer_lookup:
                     kmer_lookup[kmer] = []
