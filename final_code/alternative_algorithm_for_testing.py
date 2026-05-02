@@ -4,12 +4,15 @@ import gzip
 
 def read_genome(fastq_files):
     comp_trans = str.maketrans("ATCG", "TAGC")
+    valid_bases = set("ATGC")
     for file in fastq_files:
         with gzip.open(file, "rt") as f:
             for i, line in enumerate(f):
                 if i % 4 == 1:
                     seq = line.strip()
                     seq = seq.upper()
+                    if any(base not in valid_bases for base in seq):
+                        raise ValueError("Invalid DNA sequence in FASTQ file")
                     yield seq
                     yield seq[::-1].translate(comp_trans)
 

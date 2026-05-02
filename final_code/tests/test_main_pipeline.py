@@ -113,12 +113,34 @@ def gzipped_fastq_lowercase(tmp_path):
         
     return str(file_path)
 
+@pytest.fixture
+def gzipped_fastq_no_hits(tmp_path):
+    # Since the function uses gzip, we need to also create it in this format
+    raw_content = "@read1\nACGT\n+\n!!!!\n@read2\nGGGG\n+\n!!!!\n"
+    
+    file_path = tmp_path / "reads.fastq.gz"
+    
+    with gzip.open(file_path, "wt") as f:
+        f.write(raw_content)
+        
+    return str(file_path)
+
+@pytest.fixture
+def gzipped_fastq_invalid(tmp_path):
+    # Invalid because of the 'X'
+    raw_content = "@read1\nACGTX\n+\n!!!!!\n"
+    file_path = tmp_path / "invalid.fastq.gz"
+    with gzip.open(file_path, "wt") as f:
+        f.write(raw_content)
+    return str(file_path)
+
 def test_recursive_match_with_mismatch(test_setup):
     ar_genes = test_setup
     recursive_match(">GeneA", 0, "AAAAAA", "AAAGGA", ar_genes)
     assert ar_genes.coverage[">GeneA"] == [1, 1, 1, 0, 0, 1]
 
 def test_read_genome_lowercase(gzipped_fastq_lowercase):
+    # Here we found that the code wasn't handling lowercase sequences!!! Added a fix immediately 
     file_list = [gzipped_fastq_lowercase]
     read_count = 0
     all_reads = []
@@ -130,3 +152,16 @@ def test_read_genome_lowercase(gzipped_fastq_lowercase):
     assert all_reads[1] == "TTTT"
     assert all_reads[2] == "GGGG"
     assert all_reads[3] == "CCCC"
+
+def scan_genome_no_hits(gzipped_fastq, kmer_db):
+    ar_db = kmer_db
+    file_list = [gzipped_fastq]
+    scan_genome(ar_db, file_list, 4)
+    assert ar_db.coverage[">GeneA"][0:7] == 0
+
+def test_read_genome_raises_error_for_invalid_dna(gzipped_fastq_invalid):
+    file_list = [gzipped_fastq_invalid]
+    
+    # We must consume the generator (list()) to force it to read the file
+    with pytest.raises(ValueError, match="Invalid DNA sequence in FASTQ file"):
+        list(read_genome(file_list))

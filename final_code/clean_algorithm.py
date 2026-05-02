@@ -73,14 +73,16 @@ def scan_genome(ar_genes, fastq_files, kmer_size, report_step=1000000):
     """Scan FASTQ reads and update per-base coverage on ar_genes."""
 
     def read_genome(fastq_files):
-        """Yield each read and its reverse complement from gzipped FASTQ files."""
         comp_trans = str.maketrans("ATCG", "TAGC")
+        valid_bases = set("ATGC")
         for file in fastq_files:
             with gzip.open(file, "rt") as f:
                 for i, line in enumerate(f):
                     if i % 4 == 1:
                         seq = line.strip()
                         seq = seq.upper()
+                        if any(base not in valid_bases for base in seq):
+                            raise ValueError("Invalid DNA sequence in FASTQ file")
                         yield seq
                         yield seq[::-1].translate(comp_trans)
 
