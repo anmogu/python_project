@@ -11,15 +11,14 @@ def test_correct_parsing():
 
     # Assign the made-up values
     sys.argv = ["program", "-db", "db.fasta", "-o", "out.csv",
-                "-i", "file1.fastq.gz", "-k", "19", "-n", "20"]
+                "-i", "file1.fastq.gz", "-k", "19"]
 
     # Assert!
-    db, out, fastq, k, n = parse_args()
+    db, out, fastq, k = parse_args()
     assert db == "db.fasta"
     assert out == "out.csv"
     assert fastq == ["file1.fastq.gz"]
     assert k == 19
-    assert n == 20
 
 
 def test_correct_parsing_without_optionals():
@@ -31,7 +30,7 @@ def test_correct_parsing_without_optionals():
                 "-i", "file1.fastq.gz"]
 
     # Assert!
-    db, out, fastq, k, n = parse_args()
+    db, out, fastq, k, = parse_args()
     assert db == "db.fasta"
     assert out == "out.csv"
     assert fastq == ["file1.fastq.gz"]
@@ -45,7 +44,7 @@ def test_parse_muliple_fastq():
     sys.argv = ["program", "-db", "db.fasta", "-o",
                 "out.csv", "-i", "file1.fastq.gz", "file2.fastq.gz"]
 
-    dv, out, fastq, k, n = parse_args()
+    dv, out, fastq, k = parse_args()
     assert len(fastq) == 2
 
 
@@ -91,21 +90,21 @@ def test_empty_program():
 
 def test_main_flag_without_value():
     sys.argv = ["program", "-db", "-o", "out.csv",
-                "-i", "file1.fastq.gz", "-k", "19", "-n", "20"]
+                "-i", "file1.fastq.gz", "-k", "19"]
     
     with pytest.raises(SystemExit):
         parse_args()
 
 def test_optional_flag_without_value():
     sys.argv = ["program", "-db", "hola", "-o", "out.csv",
-                "-i", "file1.fastq.gz", "-k", "19", "-n"]
+                "-i", "file1.fastq.gz", "-k"]
     
     with pytest.raises(SystemExit):
         parse_args()
 
 def test_input_is_gzipped():
     sys.argv = ["program", "-db", "hola", "-o", "out.csv",
-                "-i", "file1.fastq", "-k", "19", "-n"]
+                "-i", "file1.fastq", "-k", "19"]
     
     with pytest.raises(SystemExit):
         parse_args()

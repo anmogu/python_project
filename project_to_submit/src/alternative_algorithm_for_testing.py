@@ -53,7 +53,7 @@ def scan_genome(ar_genes, fastq_files, kmer_size, report_step=1000000):
 
 def main():
     # 1. Parse arguments
-    db_path, out_path, fastq_files, kmer_size, indent_size = parse_args()
+    db_path, out_path, fastq_files, kmer_size = parse_args()
 
     # 2. Load resistance gene k-mer database
     print(f"Loading kmers from {db_path} (k={kmer_size})...")

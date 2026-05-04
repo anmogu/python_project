@@ -4,7 +4,7 @@ from alternative_algorithm_for_testing import (
     recursive_match,
     scan_genome,
 )
-from kmer_clean import Kmer
+from kmer_class import Kmer
 import gzip
 import sys
 
@@ -163,7 +163,6 @@ def test_scan_genome_no_hits(gzipped_fastq_no_hits, kmer_db):
 #############################################################
 
 def test_main_pipeline_correct(tmp_path, gzipped_fastq, kmer_db_file):
-    old_args = sys.argv
     out_base = tmp_path / "result"
 
     sys.argv = [
@@ -171,15 +170,13 @@ def test_main_pipeline_correct(tmp_path, gzipped_fastq, kmer_db_file):
         "-db", str(kmer_db_file),
         "-o", str(out_base),
         "-i", str(gzipped_fastq),
-        "-k", "4",
+        "-k", "4"
     ]
 
-    try:
-        main()
-        output_file = tmp_path / "result.csv"
-        assert output_file.exists()
+    main()
+    output_file = tmp_path / "result.csv"
+    assert output_file.exists()
 
-        content = output_file.read_text()
-        assert "Gene,Coverage (%),Average depth" in content
-    finally:
-        sys.argv = old_args
+    content = output_file.read_text()
+    assert "Gene,Coverage (%),Average depth" in content
+

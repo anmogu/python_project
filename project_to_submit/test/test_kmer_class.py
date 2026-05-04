@@ -3,7 +3,7 @@ import sys
 
 sys.path.append("../src")
 
-from kmer_clean import Kmer
+from kmer_class import Kmer
 
 @pytest.fixture
 def kmer_db(tmp_path):

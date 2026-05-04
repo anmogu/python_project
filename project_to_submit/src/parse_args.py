@@ -18,7 +18,7 @@ def parse_args():
 
     if "-h" in args or "--help" in args:
         print(
-            "Usage: python3 PROGRAMNAME.py -db <database_file> -o <output.csv> -i <fastq1.gz> [fastq2.gz ...] [-k <kmer_size>] [-n <indent_size>]")
+            "Usage: python3 PROGRAMNAME.py -db <database_file> -o <output.csv> -i <fastq1.gz> [fastq2.gz ...] [-k <kmer_size>]")
         print()
         print("options:")
         print("  -h, --help         show this help message and exit")
