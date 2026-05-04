@@ -6,7 +6,7 @@ import gzip
 
 def main():
     # 1. Parse arguments
-    db_path, out_path, fastq_files, kmer_size, indent_size = parse_args()
+    db_path, out_path, fastq_files, kmer_size = parse_args()
 
     # 2. Load resistance gene k-mer database
     print(f"Loading kmers from {db_path} (k={kmer_size})...")
@@ -74,7 +74,7 @@ def scan_genome(ar_genes, fastq_files, kmer_size, report_step=1000000):
 
     def read_genome(fastq_files):
         comp_trans = str.maketrans("ATCG", "TAGC")
-        valid_bases = set("ATGC")
+        valid_bases = set("ATGCN")
         for file in fastq_files:
             with gzip.open(file, "rt") as f:
                 for i, line in enumerate(f):

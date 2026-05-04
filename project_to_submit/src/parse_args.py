@@ -8,7 +8,7 @@ def usage(msg):
         print()
     print(
         "Usage: python3 PROGRAMNAME.py -db <database_file> -o <output.csv> -i "
-        "<fastq1.gz> [fastq2.gz ...] [-k <kmer_size>] [-n <indent_size>]" )
+        "<fastq1.gz> [fastq2.gz ...] [-k <kmer_size>]")
     sys.exit(1)
 
 
@@ -17,7 +17,8 @@ def parse_args():
     args = sys.argv[1:]
 
     if "-h" in args or "--help" in args:
-        print("Usage: python3 PROGRAMNAME.py -db <database_file> -o <output.csv> -i <fastq1.gz> [fastq2.gz ...] [-k <kmer_size>] [-n <indent_size>]")
+        print(
+            "Usage: python3 PROGRAMNAME.py -db <database_file> -o <output.csv> -i <fastq1.gz> [fastq2.gz ...] [-k <kmer_size>] [-n <indent_size>]")
         print()
         print("options:")
         print("  -h, --help         show this help message and exit")
@@ -25,7 +26,6 @@ def parse_args():
         print("  -o                 Output CSV file (REQUIRED)")
         print("  -i                 Input FASTQ file(s) (REQUIRED)")
         print("  -k                 k-mer size (default: 19)")
-        print("  -n                 indent size (default: 20)")
         sys.exit(0)
 
     if "-db" not in args or "-i" not in args or "-o" not in args:
@@ -51,15 +51,6 @@ def parse_args():
             usage("Missing kmer size after -k.")
         kmer_size = int(args[k_index + 1])
 
-    # Parse indent size (Optional, defaults to 20)
-    indent_size = 20
-    if "-n" in args:
-        n_index = args.index("-n")
-        if n_index + 1 >= len(args) or args[n_index + 1].startswith("-"):
-            usage("Missing indent size after -n.")
-        indent_size = int(args[n_index + 1])
-    
-
     # Parse Input FASTQ files (can be multiple)
     i_index = args.index("-i")
     fastq_files = []
@@ -77,4 +68,4 @@ def parse_args():
         if not file.endswith(".gz"):
             usage("FASTQ files are not gzipped")
 
-    return db_path, out_path, fastq_files, kmer_size, indent_size
+    return db_path, out_path, fastq_files, kmer_size
