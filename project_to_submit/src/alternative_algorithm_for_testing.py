@@ -1,4 +1,4 @@
-from kmer_clean import Kmer
+from kmer_class import Kmer
 from parse_args import parse_args
 import gzip
 
