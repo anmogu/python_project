@@ -3,7 +3,7 @@ class Kmer:
 
     def __init__(self, filename=None, kmer_size=19):
         self.kmer_size = kmer_size
-        if filename:
+        if filename is not None:
             self.load(filename)
             self.split(kmer_size=kmer_size)
 

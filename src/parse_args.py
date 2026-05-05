@@ -50,6 +50,8 @@ def parse_args():
         if k_index + 1 >= len(args) or args[k_index + 1].startswith("-"):
             usage("Missing kmer size after -k.")
         kmer_size = int(args[k_index + 1])
+    if kmer_size < 1:
+        raise ValueError("Kmer size must be a positive integer")
 
     # Parse Input FASTQ files (can be multiple)
     i_index = args.index("-i")

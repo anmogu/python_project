@@ -56,6 +56,16 @@ def main():
                 break
         x += 1
 
+    # Sort results by coverage first, then by average depth (highest first)
+    genes95.sort(
+        key=lambda x: (
+            x[1],  # coverage_pct
+            sum(ar_genes.coverage[x[0]]) /
+            len(ar_genes.coverage[x[0]])  # avg_depth
+        ),
+        reverse=True
+    )
+
     # 6. Write output
     print(f"Writing output to {out_path}...")
     with open(out_path + ".csv", "w") as f:
@@ -73,18 +83,70 @@ def scan_genome(ar_genes, fastq_files, kmer_size, report_step=1000000):
     """Scan FASTQ reads and update per-base coverage on ar_genes."""
 
     def read_genome(fastq_files):
-        comp_trans = str.maketrans("ATCG", "TAGC")
+        comp_trans = str.maketrans("ATCGN", "TAGCN")
         valid_bases = set("ATGCN")
+
         for file in fastq_files:
-            with gzip.open(file, "rt") as f:
-                for i, line in enumerate(f):
-                    if i % 4 == 1:
-                        seq = line.strip()
-                        seq = seq.upper()
+            try:
+                with gzip.open(file, "rt") as f:
+                    line_num = 0
+
+                    while True:
+                        header = f.readline()
+                        if not header:
+                            break  # normal end of file
+
+                        seq = f.readline()
+                        plus = f.readline()
+                        qual = f.readline()
+                        line_num += 4
+
+                        # Check incomplete FASTQ record
+                        if not seq or not plus or not qual:
+                            raise ValueError(
+                                f"Incomplete FASTQ record in {file} near line {line_num}")
+
+                        header = header.strip()
+                        seq = seq.strip().upper()
+                        plus = plus.strip()
+                        qual = qual.strip()
+
+                        # Check FASTQ format
+                        if not header.startswith("@"):
+                            raise ValueError(
+                                f"Invalid FASTQ header in {file} near line {line_num - 3}"
+                            )
+
+                        if not plus.startswith("+"):
+                            raise ValueError(
+                                f"Missing '+' line in {file} near line {line_num - 1}"
+                            )
+
+                        # Check empty sequence
+                        if len(seq) == 0:
+                            raise ValueError(
+                                f"Empty sequence in {file} near line {line_num - 2}"
+                            )
+
+                        # Check valid DNA alphabet
                         if any(base not in valid_bases for base in seq):
-                            raise ValueError("Invalid DNA sequence in FASTQ file")
+                            raise ValueError(
+                                f"Invalid DNA sequence in FASTQ file {file} near line {line_num - 2}"
+                            )
+
+                        # Check sequence-quality length match
+                        if len(seq) != len(qual):
+                            raise ValueError(
+                                f"Sequence/quality length mismatch in {file} near line {line_num}"
+                            )
+
                         yield seq
                         yield seq[::-1].translate(comp_trans)
+
+            except FileNotFoundError:
+                raise FileNotFoundError(f"Cannot find FASTQ file: {file}")
+            except OSError:
+                raise ValueError(f"Could not read gzipped FASTQ file: {file}")
 
     def recursive_match(gene, position, gene_segment, read_segment):
         """
@@ -97,8 +159,10 @@ def scan_genome(ar_genes, fastq_files, kmer_size, report_step=1000000):
                 ar_genes.coverage[gene][p] += 1
         elif len(read_segment) > 1:
             mid = len(read_segment) // 2
-            recursive_match(gene, position, gene_segment[:mid], read_segment[:mid])
-            recursive_match(gene, position + mid, gene_segment[mid:], read_segment[mid:])
+            recursive_match(
+                gene, position, gene_segment[:mid], read_segment[:mid])
+            recursive_match(gene, position + mid,
+                            gene_segment[mid:], read_segment[mid:])
 
     for i, read in enumerate(read_genome(fastq_files)):
         if i % report_step == 0:

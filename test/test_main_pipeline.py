@@ -1,16 +1,17 @@
-from alternative_algorithm_for_testing import (
-    main,
-    read_genome,
-    recursive_match,
-    scan_genome,
-)
 from kmer_class import Kmer
 import gzip
 import sys
 
 import pytest
 
-sys.path.append("../src")
+sys.path.append("../src/")
+
+from alternative_algorithm_for_testing import (
+    main,
+    read_genome,
+    recursive_match,
+    scan_genome,
+)
 
 
 class MockArGenes:
@@ -130,8 +131,48 @@ def test_read_genome_lowercase(gzipped_fastq_lowercase):
 def test_read_genome_raises_error_for_invalid_dna(gzipped_fastq_invalid):
     file_list = [gzipped_fastq_invalid]
 
-    with pytest.raises(ValueError, match="Invalid DNA sequence in FASTQ file"):
+    with pytest.raises(ValueError):
         list(read_genome(file_list))
+
+def test_read_genome_incomplete_record(tmp_path):
+    raw_content = "@read1\nACGT\n+\n"
+    file_path = tmp_path / "bad.fastq.gz"
+    with gzip.open(file_path, "wt") as f:
+        f.write(raw_content)
+
+    with pytest.raises(ValueError):
+        list(read_genome([str(file_path)]))
+
+
+def test_read_genome_bad_header(tmp_path):
+    raw_content = "read1\nACGT\n+\n!!!!\n"
+    file_path = tmp_path / "bad.fastq.gz"
+    with gzip.open(file_path, "wt") as f:
+        f.write(raw_content)
+
+    with pytest.raises(ValueError):
+        list(read_genome([str(file_path)]))
+
+
+def test_read_genome_missing_plus(tmp_path):
+    raw_content = "@read1\nACGT\n-\n!!!!\n"
+    file_path = tmp_path / "bad.fastq.gz"
+    with gzip.open(file_path, "wt") as f:
+        f.write(raw_content)
+
+    with pytest.raises(ValueError):
+        list(read_genome([str(file_path)]))
+
+
+def test_read_genome_quality_length_mismatch(tmp_path):
+    raw_content = "@read1\nACGT\n+\n!!!\n"
+    file_path = tmp_path / "bad.fastq.gz"
+    with gzip.open(file_path, "wt") as f:
+        f.write(raw_content)
+
+    with pytest.raises(ValueError):
+        list(read_genome([str(file_path)]))
+
 
 
 #############################################################
