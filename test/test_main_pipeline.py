@@ -6,7 +6,7 @@ import pytest
 
 sys.path.append("../src/")
 
-from alternative_algorithm_for_testing import (
+from argfinder import (
     main,
     read_genome,
     recursive_match,

@@ -1,0 +1,30 @@
+Gene,Coverage (%),Average depth
+>catB4_1_EU935739 Phenicol resistance:,100.00,124.78
+>blaSHV-100_1_AM941846 Beta-lactam resistance:,100.00,82.93
+>tet(A)_4_AJ517790 Tetracycline resistance:,100.00,66.29
+>aac(3)-IIa_1_CP023555.1 Aminoglycoside resistance:,100.00,54.92
+>aac(6')Ib-cr_1_DQ303918 Fluoroquinolone and aminoglycoside resistance:,100.00,54.08
+>strB_1_M96392 Aminoglycoside resistance:Alternate name; aph(6)-Id,100.00,51.04
+>blaTEM-1B_1_JF910132 Beta-lactam resistance:Alternate name; RblaTEM-1,100.00,49.88
+>blaCTX-M-15_23_DQ302097 Beta-lactam resistance:Alternate name; UOE-1,100.00,49.81
+>blaOXA-1_1_J02967 Beta-lactam resistance:,100.00,48.91
+>strA_4_AF321551 Aminoglycoside resistance:Alternate name; aph(3'')-Ib,100.00,48.18
+>sul2_2_GQ421466 Sulphonamide resistance:,100.00,43.57
+>sul2_9_FJ197818 Sulphonamide resistance:,100.00,42.42
+>sul2_12_AF497970 Sulphonamide resistance:,100.00,42.32
+>blaSHV-14_1_AF226622 Beta-lactam resistance:,99.77,74.67
+>blaSHV-7_1_U20270 Beta-lactam resistance:,99.65,73.61
+>blaSHV-12_2_AY273807 Beta-lactam resistance:Alternate name; SHV-5-2a,99.65,67.26
+>blaTEM-124_1_AY327540 Beta-lactam resistance:,99.65,44.30
+>dfrA14_1_DQ388123 Trimethoprim resistance:,99.59,46.88
+>blaSHV-16_1_AF072684 Beta-lactam resistance:,99.54,71.39
+>blaSHV-178_1_KF705209 Beta-lactam resistance:,99.54,69.38
+>fosA_3_ACWO01000079 Fosfomycin resistance:,99.52,132.90
+>blaSHV-72_1_AM176547 Beta-lactam resistance:,99.42,71.64
+>blaSHV-168_1_JX870080 Beta-lactam resistance:,99.42,71.29
+>oqxA_1_EU370913 Quinolone resistance:,99.40,120.01
+>dfrA14_1_Z50805 Trimethoprim resistance:,99.37,44.47
+>oqxB_1_EU370913 Quinolone resistance:,99.02,107.54
+>blaTEM-123_1_AY327539 Beta-lactam resistance:,98.95,41.73
+>fosA_5_AFBO01000747 Fosfomycin resistance:,98.57,99.15
+>fosA_6_ACZD01000244 Fosfomycin resistance:,96.90,74.09
